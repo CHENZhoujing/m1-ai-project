@@ -36,6 +36,16 @@ class Node:
                     return i * self.size + j + 1
 
 
+def id_a_star_search(start: Node, goal: Node) -> list[int]:
+    depth_limit = 1
+    while True:
+        result = a_star_search(start, goal, depth_limit)
+        if result is None:
+            depth_limit *= 2
+        else:
+            return result
+
+
 def heuristic(state: Node) -> int:
     score1 = 0
     score2 = 0
@@ -43,13 +53,13 @@ def heuristic(state: Node) -> int:
         for y in range(state.size):
             if state.board[x][y] != x * state.size + y + 1:
                 score1 += 1
-            x1 = int((state.board[x][y] - 1 )/ state.size)
+            x1 = int((state.board[x][y] - 1) / state.size)
             y1 = (state.board[x][y] - 1) % state.size
             score2 = score2 + abs(y1 - y) + abs(x1 - x)
     return score1 + score2
 
 
-def a_star_search(start: Node, goal: Node) -> list[int]:
+def a_star_search(start: Node, goal: Node, depth_limit: int) -> list[int]:
     frontier = []
     heappush(frontier, (heuristic(start), start))
     explored = []
@@ -64,6 +74,8 @@ def a_star_search(start: Node, goal: Node) -> list[int]:
             path.append(state.get_position())
             path.reverse()
             return path
+        elif depth_limit - len(explored) <= 0:
+            return None
         for neighbor in get_neighbors(state):
             tmp = []
             for f in frontier:
@@ -131,26 +143,13 @@ def swap(state, x1, y1, x2, y2):
 def solve(matrix: [[]]):
     start = Node(matrix)
     goal = Node([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]])
-    path = a_star_search(start, goal)
-    if path is None:
-        print("No Solution")
-    else:
-        print(path)
-    path = bfs_search(start, goal)
-    if path is None:
-        print("No Solution")
-    else:
-        print(path)
+    output_result("id_a_star_search:", id_a_star_search(start, goal))
+    output_result("a_star_search:", a_star_search(start, goal, 100000))
+    output_result("bfs_search", bfs_search(start, goal))
 
-def main():
-    start = Node([[12, 1, 2, 15], [11, 6, 5, 8], [7, 10, 9, 4], [0, 13, 14, 3]])
-    goal = Node([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]])
-    path = a_star_search(start, goal)
-    if path is None:
-        print("No Solution")
-    else:
-        print(path)
-    path = bfs_search(start, goal)
+
+def output_result(description: str, path: list[int]):
+    print(description)
     if path is None:
         print("No Solution")
     else:
@@ -158,4 +157,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    start = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [0, 13, 14, 15]]
+    solve(start)
