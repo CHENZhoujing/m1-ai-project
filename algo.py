@@ -86,7 +86,7 @@ def a_star_search(start: Node, goal: Node, depth_limit: int) -> list[int]:
     return None
 
 
-def bfs_search(start: Node, goal: Node) -> list[int]:
+def bfs_search(start: Node, goal: Node, depth_limit: int) -> list[int]:
     frontier = deque()
     frontier.append(start)
     explored = []
@@ -101,6 +101,8 @@ def bfs_search(start: Node, goal: Node) -> list[int]:
             path.append(state.get_position())
             path.reverse()
             return path
+        elif depth_limit - len(explored) <= 0:
+            return None
         for neighbor in get_neighbors(state):
             if neighbor.not_in(explored) and neighbor.not_in(frontier):
                 frontier.append(neighbor)
@@ -140,20 +142,31 @@ def swap(state, x1, y1, x2, y2):
     return state
 
 
-def solve(matrix: [[]]):
+def solve(matrix: [[]]) -> list[int]:
     start = Node(matrix)
     goal = Node([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]])
-    output_result("id_a_star_search:", id_a_star_search(start, goal))
-    output_result("a_star_search:", a_star_search(start, goal, 100000))
-    output_result("bfs_search", bfs_search(start, goal))
 
-
-def output_result(description: str, path: list[int]):
-    print(description)
-    if path is None:
+    print("id_a_star_search")
+    path_id_a_star_search = id_a_star_search(start, goal)
+    if path_id_a_star_search is None:
         print("No Solution")
     else:
-        print(path)
+        print(path_id_a_star_search)
+
+    print("a_star_search")
+    path_a_star_search = a_star_search(start, goal, 1000)
+    if id_a_star_search is None:
+        print("No Solution")
+    else:
+        print(path_a_star_search)
+
+    print("bfs_search")
+    path_bfs_search = bfs_search(start, goal, 1000)
+    if path_bfs_search is None:
+        print("No Solution")
+    else:
+        print(path_bfs_search)
+    return path_a_star_search
 
 
 if __name__ == "__main__":

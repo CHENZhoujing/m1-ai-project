@@ -6,6 +6,8 @@ import algo
 class Game(tk.Frame):
     def __init__(self):
         tk.Frame.__init__(self)
+        self.path = None
+        self.path_label = None
         self.cells = None
         self.matrix = None
         self.position_row = 3
@@ -22,7 +24,7 @@ class Game(tk.Frame):
         self.master.bind("<Right>", self.right)
         self.master.bind("<Up>", self.up)
         self.master.bind("<Down>", self.down)
-        self.master.bind("<Enter>", self.solve)
+        self.master.bind("<Return>", self.solve)
 
         self.mainloop()
 
@@ -45,15 +47,15 @@ class Game(tk.Frame):
             self.cells.append(row)
 
         # make score header
-        score_frame = tk.Frame(self)
-        score_frame.place(relx=0.5, y=40, anchor="center")
+        path_frame = tk.Frame(self)
+        path_frame.place(relx=0.5, y=40, anchor="center")
         tk.Label(
-            score_frame,
-            text="Score",
+            path_frame,
+            text="Path:",
             font=c.SCORE_LABEL_FONT).grid(
             row=0)
-        self.score_label = tk.Label(score_frame, text="0", font=c.SCORE_FONT)
-        self.score_label.grid(row=1)
+        self.path_label = tk.Label(path_frame, text="", font=c.SCORE_FONT)
+        self.path_label.grid(row=1)
 
     def start_game(self):
         # create matrix of zeroes
@@ -62,26 +64,26 @@ class Game(tk.Frame):
         for row in range(4):
             for col in range(4):
                 val = self.matrix[row][col]
-                self.cells[row][col]["frame"].configure(bg=c.CELL_COLORS[val])
+                self.cells[row][col]["frame"].configure(bg=c.CELL_COLORS)
                 self.cells[row][col]["number"].configure(
-                    bg=c.CELL_COLORS[val],
-                    fg=c.CELL_NUMBER_COLORS[val],
-                    font=c.CELL_NUMBER_FONTS[val],
+                    bg=c.CELL_COLORS,
+                    fg=c.CELL_NUMBER_COLORS,
+                    font=c.CELL_NUMBER_FONTS,
                     text=str(val))
 
-        self.score = 0
+        self.path = ""
 
     def update_GUI(self):
         for row in range(4):
             for col in range(4):
                 val = self.matrix[row][col]
-                self.cells[row][col]["frame"].configure(bg=c.CELL_COLORS[val])
+                self.cells[row][col]["frame"].configure(bg=c.CELL_COLORS)
                 self.cells[row][col]["number"].configure(
-                    bg=c.CELL_COLORS[val],
-                    fg=c.CELL_NUMBER_COLORS[val],
-                    font=c.CELL_NUMBER_FONTS[val],
+                    bg=c.CELL_COLORS,
+                    fg=c.CELL_NUMBER_COLORS,
+                    font=c.CELL_NUMBER_FONTS,
                     text=str(val))
-        self.score_label.configure(text=self.score)
+        self.path_label.configure(text=self.path)
         self.update_idletasks()
 
     # Arrow-Press Functions
@@ -118,9 +120,10 @@ class Game(tk.Frame):
             self.position_row += 1
             self.update_GUI()
 
-
     def solve(self, event):
-        algo.solve(self.matrix)
+        self.path = algo.solve(self.matrix)
+        self.update_GUI()
+
 
 def main():
     Game()
