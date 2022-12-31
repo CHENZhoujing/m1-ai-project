@@ -5,119 +5,169 @@ from heapq import heappush, heappop
 
 class Node:
     def __init__(self, board: list):
+        # Initialize the board and size attributes
         self.board = board
         self.size = len(board)
         self.back = None
 
     def __eq__(self, other) -> bool:
         res = True
+        # Iterate through all the tiles on the board
         for i in range(self.size):
             for j in range(self.size):
+                # If any tiles are different, set the flag to False and break out of the loop
                 if self.board[i][j] != other.board[i][j]:
                     res = False
                     break
         return res
 
     def __lt__(self, other) -> bool:
+        # Return whether the size of this node is less than or equal to the size of the other node
         return self.size <= other.size
 
     def not_in(self, others) -> bool:
         res = True
+        # Iterate through the list of other nodes
         for i in range(len(others)):
+            # If this node is equal to any of the other nodes, set the flag to False and break out of the loop
             if self.__eq__(others[i]):
                 res = False
                 break
         return res
 
     def get_position(self) -> int:
+        # Iterate through all the tiles on the board
         for i in range(self.size):
             for j in range(self.size):
+                # If the current tile is empty, return its position
                 if self.board[i][j] == 0:
+                    # Return the position as a single integer, calculated by multiplying the row index by the size of the board and adding the column index + 1
                     return i * self.size + j + 1
 
 
 def id_a_star_search(start: Node, goal: Node) -> list[int]:
+    # Initialize the depth limit to 1
     depth_limit = 1
     while True:
+        # Perform an ID A* search with the current depth limit
         result = a_star_search(start, goal, depth_limit)
         if result is None:
             depth_limit *= 2
+        # If a path was found, return it
         else:
             return result
 
 
 def heuristic(state: Node) -> int:
+    # Initialize the scores for both heuristics
     score1 = 0
     score2 = 0
+    # Iterate through all the tiles on the board
     for x in range(state.size):
         for y in range(state.size):
+            # If the tile is not in the correct position, increase the score for the first heuristic
             if state.board[x][y] != x * state.size + y + 1:
                 score1 += 1
+            # Calculate the correct position of the tile
             x1 = int((state.board[x][y] - 1) / state.size)
             y1 = (state.board[x][y] - 1) % state.size
+            # Increase the score for the second heuristic by the Manhattan distance from the tile's current position to its correct position
             score2 = score2 + abs(y1 - y) + abs(x1 - x)
+    # Return the sum of the scores for both heuristics
     return score1 + score2
 
 
 def a_star_search(start: Node, goal: Node, depth_limit: int) -> list[int]:
+    # Initialize a stack to store the nodes to be explored
     frontier = []
+    # Push the starting node onto the stack with the heuristic value as the priority
     heappush(frontier, (heuristic(start), start))
+    # Initialize a list to store the nodes that have been explored
     explored = []
     while frontier:
+        # Get the node with the lowest heuristic value from the frontier
         state = heappop(frontier)[1]
+        # Add the node to the list of explored nodes
         explored.append(state)
+        # If the current node is the goal, return the path to it
         if state.__eq__(goal):
             path = []
+            # Trace the path back to the starting node
             while state.back is not None:
                 path.append(state.get_position())
                 state = state.back
             path.append(state.get_position())
             path.reverse()
             return path
+        # If the depth limit has been reached, return None
+        # This depth limit is given to the ID A* algorithm to use. If we use the A* algorithm, it is sufficient to give a very large value.
         elif depth_limit - len(explored) <= 0:
             return None
+        # Generate the neighbors of the current node
         for neighbor in get_neighbors(state):
+            # Create a temporary list to store the nodes in the frontier
             tmp = []
             for f in frontier:
                 tmp.append(f[1])
+            # If the neighbor has not been explored and is not in the frontier, add it to the frontier
             if neighbor.not_in(explored) and neighbor.not_in(tmp):
                 heappush(frontier, (heuristic(neighbor), neighbor))
         print(len(explored))
+    # If no path was found, return None
     return None
 
 
 def bfs_search(start: Node, goal: Node, depth_limit: int) -> list[int]:
+    # Initialize a queue to store the nodes to be explored
     frontier = deque()
+    # Add the starting node to the queue
     frontier.append(start)
+    # Initialize a list to store the nodes that have been explored
     explored = []
     while frontier:
+        # Get the next node in the queue
         state = frontier.popleft()
+        # Add the node to the list of explored nodes
         explored.append(state)
+        # If the current node is the goal, return the path to it
         if state.__eq__(goal):
             path = []
+            # Trace the path back to the starting node
             while state.back is not None:
                 path.append(state.get_position())
                 state = state.back
             path.append(state.get_position())
             path.reverse()
             return path
+        # If the depth limit has been reached, return None
+        # The BFS algorithm often takes a long time to solve this problem, and the purpose of this limit is to prevent this algorithm from taking up too much time and causing lag.
         elif depth_limit - len(explored) <= 0:
             return None
+        # Generate the neighbors of the current node
         for neighbor in get_neighbors(state):
+            # If the neighbor has not been explored and is not in the frontier, add it to the frontier
             if neighbor.not_in(explored) and neighbor.not_in(frontier):
                 frontier.append(neighbor)
         print(len(explored))
+    # If no path was found, return None
     return None
 
 
 def get_neighbors(state: Node) -> list[Node]:
+    # Initialize a list to store the neighbors
     neighbors = []
+    # Iterate through all the tiles on the board
     for x in range(state.size):
         for y in range(state.size):
+            # If the current tile is the empty space, generate its neighbors
             if state.board[x][y] == 0:
+                # If the empty space is not in the top row, generate a neighbor by swapping it with the tile above it
                 if x > 0:
+                    # Create a deep copy of the current state
                     tmp = swap(state, x, y, x - 1, y)
+                    # Set the parent of the neighbor to the current state
                     tmp.back = state
+                    # Add the neighbor to the list
                     neighbors.append(tmp)
                 if x < state.size - 1:
                     tmp = swap(state, x, y, x + 1, y)
@@ -131,14 +181,19 @@ def get_neighbors(state: Node) -> list[Node]:
                     tmp = swap(state, x, y, x, y + 1)
                     tmp.back = state
                     neighbors.append(tmp)
+    # Return all neighbors
     return neighbors
 
 
 def swap(state, x1, y1, x2, y2):
+    # Create a deep copy of the current state
     state = copy.deepcopy(state)
+    # Store the value of the tile at the second position in a temporary variable
     temp = state.board[x2][y2]
+    # Swap the values of the two tiles
     state.board[x2][y2] = state.board[x1][y1]
     state.board[x1][y1] = temp
+    # Return the modified state
     return state
 
 
