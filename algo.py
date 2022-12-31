@@ -45,6 +45,25 @@ class Node:
                     # Return the position as a single integer, calculated by multiplying the row index by the size of the board and adding the column index + 1
                     return i * self.size + j + 1
 
+    def get_valid_actions(self):
+        row = None
+        col = None
+        for i in range(self.size):
+            for j in range(self.size):
+                if self.board[i][j] == 0:
+                    row = i
+                    col = j
+        actions = ["up", "down", "left", "right"]
+        if row == 0:
+            actions.remove("up")
+        if row == self.size - 1:
+            actions.remove("down")
+        if col == 0:
+            actions.remove("left")
+        if col == self.size - 1:
+            actions.remove("right")
+        return actions
+
 
 def id_a_star_search(start: Node, goal: Node) -> list[int]:
     # Initialize the depth limit to 1
@@ -254,7 +273,24 @@ def solve(start_matrix: [[]], goal_matrix: [[]]) -> list[int]:
     return path_a_star_search
 
 
+'''
+def start_generator(n: int, goal: [[]]) -> [[]]:
+    length_matrix = len(goal)
+    for i in range(n):
+'''
+
+
+def goal_generator(length_matrix: int) -> [[]]:
+    matrix = [[0 for x in range(length_matrix)] for y in range(length_matrix)]
+    for i in range(length_matrix):
+        for j in range(length_matrix):
+            val = i * length_matrix + j + 1
+            if val != length_matrix * length_matrix:
+                matrix[i][j] = val
+    return matrix
+
+
 if __name__ == "__main__":
-    start = [[1, 2, 3, 4], [0, 6, 7, 8], [5, 10, 11, 12], [9, 13, 14, 15]]
     goal = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]]
+    start = [[1, 2, 3, 4], [0, 6, 7, 8], [5, 10, 11, 12], [9, 13, 14, 15]]
     solve(start, goal)
