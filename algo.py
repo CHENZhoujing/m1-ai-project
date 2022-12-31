@@ -1,4 +1,5 @@
 import copy
+import time
 from collections import deque
 from heapq import heappush, heappop
 
@@ -58,6 +59,32 @@ def id_a_star_search(start: Node, goal: Node) -> list[int]:
             return result
 
 
+def heuristic1(state: Node) -> int:
+    # Initialize the score for heuristic
+    score1 = 0
+    # Iterate through all the tiles on the board
+    for x in range(state.size):
+        for y in range(state.size):
+            # If the tile is not in the correct position, increase the score for the first heuristic
+            if state.board[x][y] != x * state.size + y + 1:
+                score1 += 1
+    return score1
+
+
+def heuristic2(state: Node) -> int:
+    # Initialize the scores for heuristic
+    score2 = 0
+    # Iterate through all the tiles on the board
+    for x in range(state.size):
+        for y in range(state.size):
+            # Calculate the correct position of the tile
+            x1 = int((state.board[x][y] - 1) / state.size)
+            y1 = (state.board[x][y] - 1) % state.size
+            # Increase the score for the second heuristic by the Manhattan distance from the tile's current position to its correct position
+            score2 = score2 + abs(y1 - y) + abs(x1 - x)
+    return score2
+
+
 def heuristic(state: Node) -> int:
     # Initialize the scores for both heuristics
     score1 = 0
@@ -98,6 +125,7 @@ def a_star_search(start: Node, goal: Node, depth_limit: int) -> list[int]:
                 state = state.back
             path.append(state.get_position())
             path.reverse()
+            print('Number of iterations:', len(explored))
             return path
         # If the depth limit has been reached, return None
         # This depth limit is given to the ID A* algorithm to use. If we use the A* algorithm, it is sufficient to give a very large value.
@@ -112,7 +140,6 @@ def a_star_search(start: Node, goal: Node, depth_limit: int) -> list[int]:
             # If the neighbor has not been explored and is not in the frontier, add it to the frontier
             if neighbor.not_in(explored) and neighbor.not_in(tmp):
                 heappush(frontier, (heuristic(neighbor), neighbor))
-        print(len(explored))
     # If no path was found, return None
     return None
 
@@ -138,6 +165,7 @@ def bfs_search(start: Node, goal: Node, depth_limit: int) -> list[int]:
                 state = state.back
             path.append(state.get_position())
             path.reverse()
+            print('Number of iterations:', len(explored))
             return path
         # If the depth limit has been reached, return None
         # The BFS algorithm often takes a long time to solve this problem, and the purpose of this limit is to prevent this algorithm from taking up too much time and causing lag.
@@ -148,7 +176,6 @@ def bfs_search(start: Node, goal: Node, depth_limit: int) -> list[int]:
             # If the neighbor has not been explored and is not in the frontier, add it to the frontier
             if neighbor.not_in(explored) and neighbor.not_in(frontier):
                 frontier.append(neighbor)
-        print(len(explored))
     # If no path was found, return None
     return None
 
@@ -202,28 +229,31 @@ def solve(matrix: [[]]) -> list[int]:
     goal = Node([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]])
 
     print("id_a_star_search")
+    time_start = time.time()
     path_id_a_star_search = id_a_star_search(start, goal)
+    time_end = time.time()
+    print('time_cost', time_end - time_start, 's')
     if path_id_a_star_search is None:
-        print("No Solution")
-    else:
-        print(path_id_a_star_search)
+        print("Exceeding the iteration limit")
 
     print("a_star_search")
-    path_a_star_search = a_star_search(start, goal, 1000)
+    time_start = time.time()
+    path_a_star_search = a_star_search(start, goal, 4000)
+    time_end = time.time()
+    print('time_cost', time_end - time_start, 's')
     if id_a_star_search is None:
-        print("No Solution")
-    else:
-        print(path_a_star_search)
+        print("Exceeding the iteration limit")
 
     print("bfs_search")
-    path_bfs_search = bfs_search(start, goal, 1000)
+    time_start = time.time()
+    path_bfs_search = bfs_search(start, goal, 4000)
+    time_end = time.time()
+    print('time_cost', time_end - time_start, 's')
     if path_bfs_search is None:
-        print("No Solution")
-    else:
-        print(path_bfs_search)
+        print("Exceeding the iteration limit")
     return path_a_star_search
 
 
 if __name__ == "__main__":
-    start = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [0, 13, 14, 15]]
+    start = [[1, 2, 3, 4], [0, 6, 7, 8], [5, 10, 11, 12], [9, 13, 14, 15]]
     solve(start)
