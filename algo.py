@@ -224,9 +224,9 @@ def swap(state, x1, y1, x2, y2):
     return state
 
 
-def solve(matrix: [[]]) -> list[int]:
-    start = Node(matrix)
-    goal = Node([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]])
+def solve(start_matrix: [[]], goal_matrix: [[]]) -> list[int]:
+    start = Node(start_matrix)
+    goal = Node(goal_matrix)
 
     print("id_a_star_search")
     time_start = time.time()
@@ -256,4 +256,5 @@ def solve(matrix: [[]]) -> list[int]:
 
 if __name__ == "__main__":
     start = [[1, 2, 3, 4], [0, 6, 7, 8], [5, 10, 11, 12], [9, 13, 14, 15]]
-    solve(start)
+    goal = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]]
+    solve(start, goal)
