@@ -1,6 +1,6 @@
 import tkinter as tk
 import colors as c
-import algo
+import main_func
 
 
 class Game(tk.Frame):
@@ -121,7 +121,8 @@ class Game(tk.Frame):
             self.update_GUI()
 
     def solve(self, event):
-        self.path = algo.solve(self.matrix, [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]])
+        self.path = main_func.a_star_search(main_func.Node(self.matrix), main_func.Node([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]]), 4000)
+        print(self.path)
         self.update_GUI()
 
 
