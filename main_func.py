@@ -49,22 +49,8 @@ class Node:
                     return i * self.size + j + 1
 
 
-def id_a_star_search(start: Node, goal: Node) -> list[int]:
-    # Initialize the depth limit to 1
-    depth_limit = 1
-    while True:
-        # Perform an ID A* search with the current depth limit
-        result = a_star_search(start, goal, 3, depth_limit)
-        if result is None:
-            depth_limit *= 2
-        # If a path was found, return it
-        else:
-            return result
-
-
 def heuristic1(state: Node) -> int:
-    # Initialize the score for h and g
-    g = state.size * state.size - 1 - state.get_position()
+    # Initialize the score for h
     score1 = state.size * state.size - 1 - state.get_position()
     # Iterate through all the tiles on the board
     for x in range(state.size):
@@ -72,12 +58,11 @@ def heuristic1(state: Node) -> int:
             # If the tile is not in the correct position, increase the score for the first heuristic
             if state.board[x][y] != x * state.size + y + 1:
                 score1 += 1
-    return score1 + g
+    return score1
 
 
 def heuristic2(state: Node) -> int:
-    # Initialize the score for h and g
-    g = state.size * state.size - 1 - state.get_position()
+    # Initialize the score for h
     score2 = 0
     # Iterate through all the tiles on the board
     for x in range(state.size):
@@ -87,12 +72,11 @@ def heuristic2(state: Node) -> int:
             y1 = (state.board[x][y] - 1) % state.size
             # Increase the score for the second heuristic by the Manhattan distance from the tile's current position to its correct position
             score2 = score2 + abs(y1 - y) + abs(x1 - x)
-    return score2 + g
+    return score2
 
 
 def heuristic12(state: Node) -> int:
     # Initialize the scores for both heuristics
-    g = state.size * state.size - 1 - state.get_position()
     score1 = 0
     score2 = 0
     # Iterate through all the tiles on the board
@@ -107,13 +91,29 @@ def heuristic12(state: Node) -> int:
             # Increase the score for the second heuristic by the Manhattan distance from the tile's current position to its correct position
             score2 = score2 + abs(y1 - y) + abs(x1 - x)
     # Return the sum of the scores for both heuristics
-    return score1 + score2 + g
+    return score1 + score2
+
+
+def id_a_star_search(start: Node, goal: Node) -> list[int]:
+    # Initialize the depth limit to 1
+    depth_limit = heuristic12(start)
+    while True:
+        # Perform an ID A* search with the current depth limit
+        result = a_star_search(start, goal, 3, depth_limit)
+        if result is None:
+            depth_limit *= 2
+        # If a path was found, return it
+        else:
+            return result
+
+
 
 
 def a_star_search(start: Node, goal: Node, heuristic: int, depth_limit: int, ) -> list[int]:
     func_dict = {1: heuristic1, 2: heuristic2, 3: heuristic12}
     # Initialize a stack to store the nodes to be explored
     frontier = []
+    # g = start.size * start.size - 1 - start.get_position()
     # Push the starting node onto the stack with the heuristic value as the priority
     heappush(frontier, (func_dict.get(heuristic)(start), start))
     # Initialize a list to store the nodes that have been explored
@@ -146,9 +146,12 @@ def a_star_search(start: Node, goal: Node, heuristic: int, depth_limit: int, ) -
                 tmp.append(f[1])
             # If the neighbor has not been explored and is not in the frontier, add it to the frontier
             if neighbor.not_in(explored) and neighbor.not_in(tmp):
+                # g = neighbor.size * neighbor.size - 1 - neighbor.get_position()
                 heappush(frontier, (func_dict.get(heuristic)(neighbor), neighbor))
     # If no path was found, return None
     return None
+
+
 
 
 def bfs_search(start: Node, goal: Node) -> list[int]:
@@ -228,7 +231,7 @@ def swap(state, x1, y1, x2, y2):
     return state
 
 
-def solve(start_matrix: [[]], goal_matrix: [[]], time_limit: int) -> list[int]:
+def solve(start_matrix: [[]], goal_matrix: [[]], time_limit: int):
     start = Node(start_matrix)
     goal = Node(goal_matrix)
     path_id_a_star_search = None
@@ -355,7 +358,7 @@ def goal_generator(length_matrix: int) -> [[]]:
 
 
 if __name__ == "__main__":
-    goal = goal_generator(5)
-    start = start_generator(10, goal)
+    goal = goal_generator(4)
+    start = start_generator(6, goal)
     print(start)
     solve(start, goal, time_limit=3)
