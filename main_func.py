@@ -1,6 +1,8 @@
 import copy
 import time
 import random
+from func_timeout import func_timeout
+from func_timeout import FunctionTimedOut
 from collections import deque
 from heapq import heappush, heappop
 
@@ -145,7 +147,7 @@ def a_star_search(start: Node, goal: Node, depth_limit: int) -> list[int]:
     return None
 
 
-def bfs_search(start: Node, goal: Node, depth_limit: int) -> list[int]:
+def bfs_search(start: Node, goal: Node) -> list[int]:
     # Initialize a queue to store the nodes to be explored
     frontier = deque()
     # Add the starting node to the queue
@@ -169,9 +171,6 @@ def bfs_search(start: Node, goal: Node, depth_limit: int) -> list[int]:
             print('Number of iterations:', len(explored))
             return path
         # If the depth limit has been reached, return None
-        # The BFS algorithm often takes a long time to solve this problem, and the purpose of this limit is to prevent this algorithm from taking up too much time and causing lag.
-        elif depth_limit - len(explored) <= 0:
-            return None
         # Generate the neighbors of the current node
         for neighbor in get_neighbors(state):
             # If the neighbor has not been explored and is not in the frontier, add it to the frontier
@@ -225,33 +224,37 @@ def swap(state, x1, y1, x2, y2):
     return state
 
 
-def solve(start_matrix: [[]], goal_matrix: [[]]) -> list[int]:
+def solve(start_matrix: [[]], goal_matrix: [[]], time_limit: int) -> list[int]:
     start = Node(start_matrix)
     goal = Node(goal_matrix)
 
     print("id_a_star_search")
-    time_start = time.time()
-    path_id_a_star_search = id_a_star_search(start, goal)
-    time_end = time.time()
-    print('time_cost', time_end - time_start, 's')
-    if path_id_a_star_search is None:
+    try:
+        time_start = time.time()
+        path_id_a_star_search = func_timeout(time_limit, id_a_star_search, args=(start, goal, ))
+        time_end = time.time()
+        print('time_cost', time_end - time_start, 's')
+    except FunctionTimedOut as e:
         print("Exceeding the iteration limit")
 
     print("a_star_search")
-    time_start = time.time()
-    path_a_star_search = a_star_search(start, goal, 1000)
-    time_end = time.time()
-    print('time_cost', time_end - time_start, 's')
-    if id_a_star_search is None:
+    try:
+        time_start = time.time()
+        path_a_star_search = func_timeout(time_limit, a_star_search, args=(start, goal, 1000, ))
+        time_end = time.time()
+        print('time_cost', time_end - time_start, 's')
+    except FunctionTimedOut as e:
         print("Exceeding the iteration limit")
 
     print("bfs_search")
-    time_start = time.time()
-    path_bfs_search = bfs_search(start, goal, 1000)
-    time_end = time.time()
-    print('time_cost', time_end - time_start, 's')
-    if path_bfs_search is None:
+    try:
+        time_start = time.time()
+        path_bfs_search = func_timeout(time_limit, bfs_search, args=(start, goal, ))
+        time_end = time.time()
+        print('time_cost', time_end - time_start, 's')
+    except FunctionTimedOut as e:
         print("Exceeding the iteration limit")
+    print(path_a_star_search)
     return path_a_star_search
 
 
@@ -328,4 +331,4 @@ if __name__ == "__main__":
     goal = goal_generator(6)
     start = start_generator(10, goal)
     print(start)
-    solve(start, goal)
+    solve(start, goal, time_limit=3)
