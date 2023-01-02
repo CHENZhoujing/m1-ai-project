@@ -54,7 +54,7 @@ def id_a_star_search(start: Node, goal: Node) -> list[int]:
     depth_limit = 1
     while True:
         # Perform an ID A* search with the current depth limit
-        result = a_star_search(start, goal, depth_limit)
+        result = a_star_search(start, goal, 3, depth_limit)
         if result is None:
             depth_limit *= 2
         # If a path was found, return it
@@ -63,19 +63,21 @@ def id_a_star_search(start: Node, goal: Node) -> list[int]:
 
 
 def heuristic1(state: Node) -> int:
-    # Initialize the score for heuristic
-    score1 = 0
+    # Initialize the score for h and g
+    g = state.size * state.size - 1 - state.get_position()
+    score1 = state.size * state.size - 1 - state.get_position()
     # Iterate through all the tiles on the board
     for x in range(state.size):
         for y in range(state.size):
             # If the tile is not in the correct position, increase the score for the first heuristic
             if state.board[x][y] != x * state.size + y + 1:
                 score1 += 1
-    return score1
+    return score1 + g
 
 
 def heuristic2(state: Node) -> int:
-    # Initialize the scores for heuristic
+    # Initialize the score for h and g
+    g = state.size * state.size - 1 - state.get_position()
     score2 = 0
     # Iterate through all the tiles on the board
     for x in range(state.size):
@@ -85,11 +87,12 @@ def heuristic2(state: Node) -> int:
             y1 = (state.board[x][y] - 1) % state.size
             # Increase the score for the second heuristic by the Manhattan distance from the tile's current position to its correct position
             score2 = score2 + abs(y1 - y) + abs(x1 - x)
-    return score2
+    return score2 + g
 
 
-def heuristic(state: Node) -> int:
+def heuristic12(state: Node) -> int:
     # Initialize the scores for both heuristics
+    g = state.size * state.size - 1 - state.get_position()
     score1 = 0
     score2 = 0
     # Iterate through all the tiles on the board
@@ -104,14 +107,15 @@ def heuristic(state: Node) -> int:
             # Increase the score for the second heuristic by the Manhattan distance from the tile's current position to its correct position
             score2 = score2 + abs(y1 - y) + abs(x1 - x)
     # Return the sum of the scores for both heuristics
-    return score1 + score2
+    return score1 + score2 + g
 
 
-def a_star_search(start: Node, goal: Node, depth_limit: int) -> list[int]:
+def a_star_search(start: Node, goal: Node, heuristic: int, depth_limit: int, ) -> list[int]:
+    func_dict = {1: heuristic1, 2: heuristic2, 3: heuristic12}
     # Initialize a stack to store the nodes to be explored
     frontier = []
     # Push the starting node onto the stack with the heuristic value as the priority
-    heappush(frontier, (heuristic(start), start))
+    heappush(frontier, (func_dict.get(heuristic)(start), start))
     # Initialize a list to store the nodes that have been explored
     explored = []
     while frontier:
@@ -142,7 +146,7 @@ def a_star_search(start: Node, goal: Node, depth_limit: int) -> list[int]:
                 tmp.append(f[1])
             # If the neighbor has not been explored and is not in the frontier, add it to the frontier
             if neighbor.not_in(explored) and neighbor.not_in(tmp):
-                heappush(frontier, (heuristic(neighbor), neighbor))
+                heappush(frontier, (func_dict.get(heuristic)(neighbor), neighbor))
     # If no path was found, return None
     return None
 
@@ -227,20 +231,41 @@ def swap(state, x1, y1, x2, y2):
 def solve(start_matrix: [[]], goal_matrix: [[]], time_limit: int) -> list[int]:
     start = Node(start_matrix)
     goal = Node(goal_matrix)
+    path_id_a_star_search = None
+    path_a_star_search_1 = None
+    path_a_star_search_2 = None
 
     print("id_a_star_search")
     try:
         time_start = time.time()
-        path_id_a_star_search = func_timeout(time_limit, id_a_star_search, args=(start, goal, ))
+        path_id_a_star_search = func_timeout(time_limit, id_a_star_search, args=(start, goal,))
         time_end = time.time()
         print('time_cost', time_end - time_start, 's')
     except FunctionTimedOut as e:
         print("Exceeding the iteration limit")
 
-    print("a_star_search")
+    print("a_star_search with heuristic1")
     try:
         time_start = time.time()
-        path_a_star_search = func_timeout(time_limit, a_star_search, args=(start, goal, 1000, ))
+        path_a_star_search_1 = func_timeout(time_limit, a_star_search, args=(start, goal, 1, 10000,))
+        time_end = time.time()
+        print('time_cost', time_end - time_start, 's')
+    except FunctionTimedOut as e:
+        print("Exceeding the iteration limit")
+
+    print("a_star_search with heuristic2")
+    try:
+        time_start = time.time()
+        path_a_star_search_2 = func_timeout(time_limit, a_star_search, args=(start, goal, 2, 10000,))
+        time_end = time.time()
+        print('time_cost', time_end - time_start, 's')
+    except FunctionTimedOut as e:
+        print("Exceeding the iteration limit")
+
+    print("a_star_search with heuristic1 and heuristic2")
+    try:
+        time_start = time.time()
+        path_a_star_search_2 = func_timeout(time_limit, a_star_search, args=(start, goal, 3, 10000,))
         time_end = time.time()
         print('time_cost', time_end - time_start, 's')
     except FunctionTimedOut as e:
@@ -249,13 +274,15 @@ def solve(start_matrix: [[]], goal_matrix: [[]], time_limit: int) -> list[int]:
     print("bfs_search")
     try:
         time_start = time.time()
-        path_bfs_search = func_timeout(time_limit, bfs_search, args=(start, goal, ))
+        path_bfs_search = func_timeout(time_limit, bfs_search, args=(start, goal,))
         time_end = time.time()
         print('time_cost', time_end - time_start, 's')
     except FunctionTimedOut as e:
         print("Exceeding the iteration limit")
-    print(path_a_star_search)
-    return path_a_star_search
+    if path_a_star_search_1 is not None:
+        print(path_a_star_search_1)
+    elif path_a_star_search_2 is not None:
+        print(path_a_star_search_2)
 
 
 def get_valid_actions(row: int, col: int, matrix_size: int) -> []:
@@ -328,7 +355,7 @@ def goal_generator(length_matrix: int) -> [[]]:
 
 
 if __name__ == "__main__":
-    goal = goal_generator(6)
+    goal = goal_generator(5)
     start = start_generator(10, goal)
     print(start)
     solve(start, goal, time_limit=3)
