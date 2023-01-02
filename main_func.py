@@ -326,6 +326,6 @@ def goal_generator(length_matrix: int) -> [[]]:
 
 if __name__ == "__main__":
     goal = goal_generator(6)
-    start = start_generator(6, goal)
+    start = start_generator(10, goal)
     print(start)
     solve(start, goal)
