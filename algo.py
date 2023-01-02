@@ -1,5 +1,6 @@
 import copy
 import time
+import random
 from collections import deque
 from heapq import heappush, heappop
 
@@ -44,25 +45,6 @@ class Node:
                 if self.board[i][j] == 0:
                     # Return the position as a single integer, calculated by multiplying the row index by the size of the board and adding the column index + 1
                     return i * self.size + j + 1
-
-    def get_valid_actions(self):
-        row = None
-        col = None
-        for i in range(self.size):
-            for j in range(self.size):
-                if self.board[i][j] == 0:
-                    row = i
-                    col = j
-        actions = ["up", "down", "left", "right"]
-        if row == 0:
-            actions.remove("up")
-        if row == self.size - 1:
-            actions.remove("down")
-        if col == 0:
-            actions.remove("left")
-        if col == self.size - 1:
-            actions.remove("right")
-        return actions
 
 
 def id_a_star_search(start: Node, goal: Node) -> list[int]:
@@ -257,7 +239,7 @@ def solve(start_matrix: [[]], goal_matrix: [[]]) -> list[int]:
 
     print("a_star_search")
     time_start = time.time()
-    path_a_star_search = a_star_search(start, goal, 4000)
+    path_a_star_search = a_star_search(start, goal, 1000)
     time_end = time.time()
     print('time_cost', time_end - time_start, 's')
     if id_a_star_search is None:
@@ -265,7 +247,7 @@ def solve(start_matrix: [[]], goal_matrix: [[]]) -> list[int]:
 
     print("bfs_search")
     time_start = time.time()
-    path_bfs_search = bfs_search(start, goal, 4000)
+    path_bfs_search = bfs_search(start, goal, 1000)
     time_end = time.time()
     print('time_cost', time_end - time_start, 's')
     if path_bfs_search is None:
@@ -273,11 +255,63 @@ def solve(start_matrix: [[]], goal_matrix: [[]]) -> list[int]:
     return path_a_star_search
 
 
-'''
-def start_generator(n: int, goal: [[]]) -> [[]]:
-    length_matrix = len(goal)
+def get_valid_actions(row: int, col: int, matrix_size: int) -> []:
+    actions = ["up", "down", "left", "right"]
+    if row == 0:
+        actions.remove("up")
+    if row == matrix_size - 1:
+        actions.remove("down")
+    if col == 0:
+        actions.remove("left")
+    if col == matrix_size - 1:
+        actions.remove("right")
+    return actions
+
+
+def start_generator(n: int, goal_matrix: [[]]) -> [[]]:
+    start_matrix = copy.deepcopy(goal_matrix)
+    matrix_size = len(start_matrix)
+    row = matrix_size - 1
+    col = matrix_size - 1
+    action_pre = ""
     for i in range(n):
-'''
+        actions = get_valid_actions(row, col, matrix_size)
+        try:
+            match action_pre:
+                case "up":
+                    actions.remove("down")
+                case "down":
+                    actions.remove("up")
+                case "left":
+                    actions.remove("right")
+                case "right":
+                    actions.remove("left")
+        except:
+            pass
+
+        action_pre = random.choice(actions)
+        match action_pre:
+            case "up":
+                tmp = start_matrix[row][col]
+                start_matrix[row][col] = start_matrix[row - 1][col]
+                start_matrix[row - 1][col] = tmp
+                row -= 1
+            case "down":
+                tmp = start_matrix[row][col]
+                start_matrix[row][col] = start_matrix[row + 1][col]
+                start_matrix[row + 1][col] = tmp
+                row += 1
+            case "left":
+                tmp = start_matrix[row][col]
+                start_matrix[row][col] = start_matrix[row][col - 1]
+                start_matrix[row][col - 1] = tmp
+                col -= 1
+            case "right":
+                tmp = start_matrix[row][col]
+                start_matrix[row][col] = start_matrix[row][col + 1]
+                start_matrix[row][col + 1] = tmp
+                col += 1
+    return start_matrix
 
 
 def goal_generator(length_matrix: int) -> [[]]:
@@ -291,6 +325,7 @@ def goal_generator(length_matrix: int) -> [[]]:
 
 
 if __name__ == "__main__":
-    goal = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]]
-    start = [[1, 2, 3, 4], [0, 6, 7, 8], [5, 10, 11, 12], [9, 13, 14, 15]]
+    goal = goal_generator(6)
+    start = start_generator(6, goal)
+    print(start)
     solve(start, goal)
