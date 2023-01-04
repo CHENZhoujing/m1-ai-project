@@ -1,6 +1,8 @@
 import copy
 import time
 import random
+import csv
+import re
 from func_timeout import func_timeout
 from func_timeout import FunctionTimedOut
 from collections import deque
@@ -107,8 +109,6 @@ def id_a_star_search(start: Node, goal: Node) -> list[int]:
             return result
 
 
-
-
 def a_star_search(start: Node, goal: Node, heuristic: int, depth_limit: int, ) -> list[int]:
     func_dict = {1: heuristic1, 2: heuristic2, 3: heuristic12}
     # Initialize a stack to store the nodes to be explored
@@ -150,8 +150,6 @@ def a_star_search(start: Node, goal: Node, heuristic: int, depth_limit: int, ) -
                 heappush(frontier, (func_dict.get(heuristic)(neighbor), neighbor))
     # If no path was found, return None
     return None
-
-
 
 
 def bfs_search(start: Node, goal: Node) -> list[int]:
@@ -231,6 +229,22 @@ def swap(state, x1, y1, x2, y2):
     return state
 
 
+def read_date():
+    datas = csv.reader(open("./data/data.csv", encoding="utf-8-sig"))
+    for data in datas:
+        print("Number of times the number 0 has been moved:", data[2], " Time limit: 3s")
+        print("Start matrix: ", data[0])
+        matrix = [[0 for x in range(int(data[1]))] for y in range(int(data[1]))]
+        tmp = re.sub("\D", "", data[0])
+        ptr = 0
+        for i in range(int(data[1])):
+            for j in range(int(data[1])):
+                matrix[i][j] = int(tmp[ptr])
+                ptr+=1
+        solve(matrix, goal_generator(int(data[1])), time_limit=3)
+        print("----------------------------------------------------------------")
+
+
 def solve(start_matrix: [[]], goal_matrix: [[]], time_limit: int):
     start = Node(start_matrix)
     goal = Node(goal_matrix)
@@ -283,9 +297,9 @@ def solve(start_matrix: [[]], goal_matrix: [[]], time_limit: int):
     except FunctionTimedOut as e:
         print("Exceeding the iteration limit")
     if path_a_star_search_1 is not None:
-        print(path_a_star_search_1)
+        print("Path:", path_a_star_search_1)
     elif path_a_star_search_2 is not None:
-        print(path_a_star_search_2)
+        print("Path:", path_a_star_search_2)
 
 
 def get_valid_actions(row: int, col: int, matrix_size: int) -> []:
@@ -358,7 +372,9 @@ def goal_generator(length_matrix: int) -> [[]]:
 
 
 if __name__ == "__main__":
-    goal = goal_generator(4)
-    start = start_generator(6, goal)
+    # If you didn't want to see the results of the test, add the # in front of the line of code below(read_date()).
+    read_date()
+    goal = goal_generator(15)
+    start = start_generator(5, goal)
     print(start)
     solve(start, goal, time_limit=3)
