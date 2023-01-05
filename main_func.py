@@ -1,8 +1,8 @@
 import copy
-import time
-import random
 import csv
 import re
+import time
+import random
 from func_timeout import func_timeout
 from func_timeout import FunctionTimedOut
 from collections import deque
@@ -47,10 +47,14 @@ class Node:
             for j in range(self.size):
                 # If the current tile is empty, return its position
                 if self.board[i][j] == 0:
-                    # Return the position as a single integer, calculated by multiplying the row index by the size of the board and adding the column index + 1
+                    # Return the position as a single integer, calculated by multiplying the row index by the size of
+                    # the board and adding the column index + 1
                     return i * self.size + j + 1
 
 
+########################################################
+# Heuristic 1 : number of displaced tiles
+########################################################
 def heuristic1(state: Node) -> int:
     # Initialize the score for h
     score1 = state.size * state.size - 1 - state.get_position()
@@ -63,6 +67,9 @@ def heuristic1(state: Node) -> int:
     return score1
 
 
+########################################################
+# Heuristic 2 : sum of Manhattan distance
+########################################################
 def heuristic2(state: Node) -> int:
     # Initialize the score for h
     score2 = 0
@@ -72,7 +79,8 @@ def heuristic2(state: Node) -> int:
             # Calculate the correct position of the tile
             x1 = int((state.board[x][y] - 1) / state.size)
             y1 = (state.board[x][y] - 1) % state.size
-            # Increase the score for the second heuristic by the Manhattan distance from the tile's current position to its correct position
+            # Increase the score for the second heuristic by the Manhattan distance from the tile's current position
+            # to its correct position
             score2 = score2 + abs(y1 - y) + abs(x1 - x)
     return score2
 
@@ -90,12 +98,16 @@ def heuristic12(state: Node) -> int:
             # Calculate the correct position of the tile
             x1 = int((state.board[x][y] - 1) / state.size)
             y1 = (state.board[x][y] - 1) % state.size
-            # Increase the score for the second heuristic by the Manhattan distance from the tile's current position to its correct position
+            # Increase the score for the second heuristic by the Manhattan distance from the tile's current position
+            # to its correct position
             score2 = score2 + abs(y1 - y) + abs(x1 - x)
     # Return the sum of the scores for both heuristics
     return score1 + score2
 
 
+########################################################
+# IDA* Algorithm
+########################################################
 def id_a_star_search(start: Node, goal: Node) -> list[int]:
     # Initialize the depth limit to 1
     depth_limit = heuristic12(start)
@@ -109,6 +121,9 @@ def id_a_star_search(start: Node, goal: Node) -> list[int]:
             return result
 
 
+########################################################
+# A* Algorithm
+########################################################
 def a_star_search(start: Node, goal: Node, heuristic: int, depth_limit: int, ) -> list[int]:
     func_dict = {1: heuristic1, 2: heuristic2, 3: heuristic12}
     # Initialize a stack to store the nodes to be explored
@@ -134,8 +149,8 @@ def a_star_search(start: Node, goal: Node, heuristic: int, depth_limit: int, ) -
             path.reverse()
             print('Number of iterations:', len(explored))
             return path
-        # If the depth limit has been reached, return None
-        # This depth limit is given to the ID A* algorithm to use. If we use the A* algorithm, it is sufficient to give a very large value.
+        # If the depth limit has been reached, return None This depth limit is given to the ID A* algorithm to use.
+        # If we use the A* algorithm, it is sufficient to give a very large value.
         elif depth_limit - len(explored) <= 0:
             return None
         # Generate the neighbors of the current node
@@ -152,6 +167,9 @@ def a_star_search(start: Node, goal: Node, heuristic: int, depth_limit: int, ) -
     return None
 
 
+########################################################
+# BFS Algorithm
+########################################################
 def bfs_search(start: Node, goal: Node) -> list[int]:
     # Initialize a queue to store the nodes to be explored
     frontier = deque()
@@ -183,6 +201,40 @@ def bfs_search(start: Node, goal: Node) -> list[int]:
                 frontier.append(neighbor)
     # If no path was found, return None
     return None
+
+
+########################################################
+# Bidirectional Search
+########################################################
+def bidirectional_search(start: Node, end: Node) -> list[int]:
+    # Set up two queues, one for each direction
+    forward_queue = [start]
+    backward_queue = [end]
+
+    # Store the visited nodes in two lists, one for each direction
+    forward_visited = []
+    backward_visited = []
+
+    # While both queues have elements in them
+    while forward_queue and backward_queue:
+
+        # Check the front elements of the two queues
+        forward_front = forward_queue.pop(0)
+        backward_front = backward_queue.pop(0)
+
+        # If they match, then we have found a path
+        if forward_front == backward_front:
+            return forward_front
+
+        # Otherwise, add any unvisited neighbors to the respective queues
+        for neighbor in get_neighbors(forward_front):
+            if neighbor not in forward_visited:
+                forward_queue.append(neighbor)
+                forward_visited.append(neighbor)
+
+        for neighbor in get_neighbors(backward_front):
+            if neighbor not in backward_visited:
+                backward_queue.append(neighbor)
 
 
 def get_neighbors(state: Node) -> list[Node]:
@@ -240,8 +292,8 @@ def read_date():
         for i in range(int(data[1])):
             for j in range(int(data[1])):
                 matrix[i][j] = int(tmp[ptr])
-                ptr+=1
-        solve(matrix, goal_generator(int(data[1])), time_limit=3)
+                ptr += 1
+        solve(matrix, goal_generator(int(data[1])), time_limit=10)
         print("----------------------------------------------------------------")
 
 
@@ -288,6 +340,16 @@ def solve(start_matrix: [[]], goal_matrix: [[]], time_limit: int):
     except FunctionTimedOut as e:
         print("Exceeding the iteration limit")
 
+    # Exceeding the iteration limit
+    print("bidirectional search")
+    try:
+        time_start = time.time()
+        path_bidirectional_search = func_timeout(time_limit, bidirectional_search, args=(start, goal,))
+        time_end = time.time()
+        print('time_cost', time_end - time_start, 's')
+    except FunctionTimedOut as e:
+        print("Exceeding the iteration limit")
+
     print("bfs_search")
     try:
         time_start = time.time()
@@ -297,9 +359,9 @@ def solve(start_matrix: [[]], goal_matrix: [[]], time_limit: int):
     except FunctionTimedOut as e:
         print("Exceeding the iteration limit")
     if path_a_star_search_1 is not None:
-        print("Path:", path_a_star_search_1)
+        print(path_a_star_search_1)
     elif path_a_star_search_2 is not None:
-        print("Path:", path_a_star_search_2)
+        print(path_a_star_search_2)
 
 
 def get_valid_actions(row: int, col: int, matrix_size: int) -> []:
@@ -372,9 +434,10 @@ def goal_generator(length_matrix: int) -> [[]]:
 
 
 if __name__ == "__main__":
-    # If you didn't want to see the results of the test, add the # in front of the line of code below(read_date()).
-    read_date()
-    goal = goal_generator(15)
-    start = start_generator(5, goal)
+    # If you want to see the results of the test, add the # in front of the line of code below(read_date()).
+    # read_date()
+    goal = goal_generator(4)
+    print(goal)
+    start = start_generator(15, goal)
     print(start)
-    solve(start, goal, time_limit=3)
+    solve(start, goal, time_limit=10)
