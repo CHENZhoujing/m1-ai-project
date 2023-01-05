@@ -12,6 +12,7 @@ from heapq import heappush, heappop
 class Node:
     def __init__(self, board: list):
         # Initialize the board and size attributes
+        self.g = 0
         self.board = board
         self.size = len(board)
         self.back = None
@@ -161,8 +162,9 @@ def a_star_search(start: Node, goal: Node, heuristic: int, depth_limit: int, ) -
                 tmp.append(f[1])
             # If the neighbor has not been explored and is not in the frontier, add it to the frontier
             if neighbor.not_in(explored) and neighbor.not_in(tmp):
-                # g = neighbor.size * neighbor.size - 1 - neighbor.get_position()
-                heappush(frontier, (func_dict.get(heuristic)(neighbor), neighbor))
+                # value g
+                neighbor.g = state.g + 1
+                heappush(frontier, (func_dict.get(heuristic)(neighbor) + neighbor.g, neighbor))
     # If no path was found, return None
     return None
 
