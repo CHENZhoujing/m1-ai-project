@@ -136,7 +136,8 @@ def a_star_search(start: Node, goal: Node, heuristic: int, depth_limit: int, ) -
     explored = []
     while frontier:
         # Get the node with the lowest heuristic value from the frontier
-        state = heappop(frontier)[1]
+        tmp = heappop(frontier)
+        depth, state = tmp[0], tmp[1]
         # Add the node to the list of explored nodes
         explored.append(state)
         # If the current node is the goal, return the path to it
@@ -152,7 +153,7 @@ def a_star_search(start: Node, goal: Node, heuristic: int, depth_limit: int, ) -
             return path
         # If the depth limit has been reached, return None This depth limit is given to the ID A* algorithm to use.
         # If we use the A* algorithm, it is sufficient to give a very large value.
-        elif depth_limit - len(explored) <= 0:
+        elif depth_limit - depth <= 0:
             return None
         # Generate the neighbors of the current node
         for neighbor in get_neighbors(state):
@@ -318,7 +319,7 @@ def solve(start_matrix: [[]], goal_matrix: [[]], time_limit: int):
     print("a_star_search with heuristic1")
     try:
         time_start = time.time()
-        path_a_star_search_1 = func_timeout(time_limit, a_star_search, args=(start, goal, 1, 10000,))
+        path_a_star_search_1 = func_timeout(time_limit, a_star_search, args=(start, goal, 1, 100000,))
         time_end = time.time()
         print('time_cost', time_end - time_start, 's')
     except FunctionTimedOut as e:
@@ -327,7 +328,7 @@ def solve(start_matrix: [[]], goal_matrix: [[]], time_limit: int):
     print("a_star_search with heuristic2")
     try:
         time_start = time.time()
-        path_a_star_search_2 = func_timeout(time_limit, a_star_search, args=(start, goal, 2, 10000,))
+        path_a_star_search_2 = func_timeout(time_limit, a_star_search, args=(start, goal, 2, 100000,))
         time_end = time.time()
         print('time_cost', time_end - time_start, 's')
     except FunctionTimedOut as e:
@@ -336,7 +337,7 @@ def solve(start_matrix: [[]], goal_matrix: [[]], time_limit: int):
     print("a_star_search with heuristic1 and heuristic2")
     try:
         time_start = time.time()
-        path_a_star_search_2 = func_timeout(time_limit, a_star_search, args=(start, goal, 3, 10000,))
+        path_a_star_search_2 = func_timeout(time_limit, a_star_search, args=(start, goal, 3, 100000,))
         time_end = time.time()
         print('time_cost', time_end - time_start, 's')
     except FunctionTimedOut as e:
